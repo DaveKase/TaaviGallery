@@ -34,7 +34,6 @@ public class Downloader {
             public void run() {
                 try {
                     JSONArray jArray = new JSONArray(getJson());
-                    //Log.i(TAG, "jArray = " + jArray.toString());
                     getUrl(jArray);
                 } catch (JSONException e) {
                     Log.e(TAG, "JSON download error: " + e.toString());
@@ -43,6 +42,9 @@ public class Downloader {
         }.start();
     }
 
+    /**
+     * Downloads JSON Array as a String
+     */
     private String getJson() {
         StringBuilder builder = new StringBuilder();
         HttpClient client = new DefaultHttpClient();
@@ -102,8 +104,7 @@ public class Downloader {
     }
 
     private void saveBitmap(Bitmap bitmapToSave, int index) {
-        String root = Environment.getExternalStorageDirectory().toString();
-        File dir = new File(root + "/taavi_gallery");
+        File dir = new File(getDirectory());
         dir.mkdirs();
 
         String fileName = "PIC-" + index + ".jpg";
@@ -119,5 +120,10 @@ public class Downloader {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public String getDirectory() {
+        String root = Environment.getExternalStorageDirectory().toString();
+        return root + "/taavi_gallery";
     }
 }
