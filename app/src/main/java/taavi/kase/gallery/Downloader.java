@@ -22,24 +22,22 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Environment;
 import android.util.Log;
+import android.view.View;
 
 /**
  * Created by Taavi on 19.05.2015.
  */
 public class Downloader {
     private static final String TAG = "JSON";
+    public boolean isDownloading = true;
 
     public void getJsonArray() {
-        new Thread("Download JSON") {
-            public void run() {
-                try {
-                    JSONArray jArray = new JSONArray(getJson());
-                    getUrl(jArray);
-                } catch (JSONException e) {
-                    Log.e(TAG, "JSON download error: " + e.toString());
-                }
-            }
-        }.start();
+        try {
+            JSONArray jArray = new JSONArray(getJson());
+            getUrl(jArray);
+        } catch (JSONException e) {
+            Log.e(TAG, "JSON download error: " + e.toString());
+        }
     }
 
     /**
@@ -117,12 +115,14 @@ public class Downloader {
             bitmapToSave.compress(Bitmap.CompressFormat.JPEG, 90, out);
             out.flush();
             out.close();
+
+            isDownloading = false;
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public String getDirectory() {
+    public static String getDirectory() {
         String root = Environment.getExternalStorageDirectory().toString();
         return root + "/taavi_gallery";
     }
