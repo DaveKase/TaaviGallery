@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Gallery</string>
 
-    <string name="hello_world">Hello world!</string>
+    <string name="init_text">Downloading images, please wait</string>
     <string name="action_settings">Settings</string>
+    <string name="image">Downloaded image</string>
 </resources>

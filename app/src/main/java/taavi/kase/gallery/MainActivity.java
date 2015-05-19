@@ -3,17 +3,23 @@ package taavi.kase.gallery;
 import android.app.Activity;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class MainActivity extends Activity {
-    private static final String TAG = "MainActivity";
-    public static ProgressBar progress;
+    private ProgressBar progress;
+    private TextView initText;
 
     private float oldTouchValue;
+    private int index = 0;
+    private ImageView imageView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,6 +28,9 @@ public class MainActivity extends Activity {
 
         progress = (ProgressBar) findViewById(R.id.progressBar);
         progress.setVisibility(View.VISIBLE);
+
+        initText = (TextView) findViewById(R.id.init_textView);
+        initText.setVisibility(View.VISIBLE);
         download();
     }
 
@@ -29,7 +38,7 @@ public class MainActivity extends Activity {
         new Thread("Download JSON") {
             public void run() {
                 Downloader downloader = new Downloader();
-                downloader.getJsonArray();
+                downloader.startDownloading();
                 showUI();
             }
         }.start();
@@ -39,18 +48,39 @@ public class MainActivity extends Activity {
         this.runOnUiThread(new Runnable() {
             public void run() {
                 progress.setVisibility(View.INVISIBLE);
-                showImages();
+                initText.setVisibility(View.INVISIBLE);
+                showImageAndText();
             }
         });
     }
 
-    private void showImages() {
-        ImageView imageView = (ImageView) findViewById(R.id.imageView);
+    private void showImageAndText() {
+        if (imageView != null) {
+            imageView = null;
+        }
+
+        imageView = (ImageView) findViewById(R.id.imageView);
         String dir = Downloader.getDirectory();
-        Uri uri = Uri.parse(dir + "/PIC-0.jpg");
+        Uri uri = Uri.parse(dir + "/PIC-" + index + ".jpg");
         imageView.setImageURI(uri);
+
+        String created = "";
+
+        try {
+            JSONObject jObject = Downloader.jArray.getJSONObject(index);
+            created = jObject.getString("created");
+        } catch (JSONException e) {
+            Toast.makeText(this, "Could not get created time", Toast.LENGTH_SHORT).show();
+        }
+
+        TextView tv = (TextView) findViewById(R.id.textView);
+        tv.setText("Created: " + created);
     }
 
+    /*
+    * Found on:
+    * http://stackoverflow.com/questions/6645537/how-to-detect-the-swipe-left-or-right-in-android
+    */
     @Override
     public boolean onTouchEvent(MotionEvent event)
     {
@@ -62,12 +92,30 @@ public class MainActivity extends Activity {
                 float currentX = event.getX();
 
                 if (oldTouchValue < currentX) {
-                    Log.i(TAG, "left");
+                    showPreviousImage();
                 } if (oldTouchValue > currentX ) {
-                    Log.i(TAG, "right");
+                    showNextImage();
                 }
         }
 
         return super.onTouchEvent(event);
+    }
+
+    private void showPreviousImage() {
+        if (index <= 0) {
+            Toast.makeText(this, "Already showing first image", Toast.LENGTH_SHORT).show();
+        } else {
+            index--;
+            showImageAndText();
+        }
+    }
+
+    private void showNextImage() {
+        if (index == Downloader.maxIndex) {
+            Toast.makeText(this, "Already showing last image", Toast.LENGTH_SHORT).show();
+        } else {
+            index++;
+            showImageAndText();
+        }
     }
 }

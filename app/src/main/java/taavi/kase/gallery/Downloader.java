@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.URL;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -22,18 +23,16 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Environment;
 import android.util.Log;
-import android.view.View;
 
-/**
- * Created by Taavi on 19.05.2015.
- */
 public class Downloader {
     private static final String TAG = "JSON";
     public boolean isDownloading = true;
+    public static int maxIndex;
+    public static JSONArray jArray;
 
-    public void getJsonArray() {
+    public void startDownloading() {
         try {
-            JSONArray jArray = new JSONArray(getJson());
+            jArray = new JSONArray(getJson());
             getUrl(jArray);
         } catch (JSONException e) {
             Log.e(TAG, "JSON download error: " + e.toString());
@@ -42,6 +41,9 @@ public class Downloader {
 
     /**
      * Downloads JSON Array as a String
+     *
+     * Found on:
+     * http://www.vogella.com/tutorials/AndroidJSON/article.html
      */
     private String getJson() {
         StringBuilder builder = new StringBuilder();
@@ -77,8 +79,8 @@ public class Downloader {
             for (int i = 0; i < jArray.length(); i++) {
                 JSONObject jObject = jArray.getJSONObject(i);
                 String url = jObject.getString("url");
-                Log.i(TAG, "url = " + url);
                 getImageFromUrl(url, i);
+                maxIndex = i;
             }
         } catch(JSONException e) {
             Log.e(TAG, "Error in parsing JSON: " + e.toString());
@@ -87,9 +89,13 @@ public class Downloader {
         return "";
     }
 
+    /*
+    * Found on:
+    * http://stackoverflow.com/questions/18210700/best-method-to-download-image-from-url-in-android
+    */
     private void getImageFromUrl (String src, int index) {
         try {
-            java.net.URL url = new java.net.URL(src);
+            URL url = new URL(src);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setDoInput(true);
             connection.connect();
@@ -101,24 +107,33 @@ public class Downloader {
         }
     }
 
+    /*
+    * Found on:
+    * http://stackoverflow.com/questions/11846108/android-saving-bitmap-to-sd-card
+    */
     private void saveBitmap(Bitmap bitmapToSave, int index) {
         File dir = new File(getDirectory());
-        dir.mkdirs();
+        boolean deleted = dir.mkdirs();
 
-        String fileName = "PIC-" + index + ".jpg";
-        File file = new File (dir, fileName);
+        if (deleted) {
+            String fileName = "PIC-" + index + ".jpg";
+            File file = new File (dir, fileName);
 
-        if (file.exists()) file.delete();
+            if (file.exists()) {
+                boolean isDeleted = file.delete();
+                Log.d(TAG, "file deleted = " + isDeleted);
+            }
 
-        try {
-            FileOutputStream out = new FileOutputStream(file);
-            bitmapToSave.compress(Bitmap.CompressFormat.JPEG, 90, out);
-            out.flush();
-            out.close();
+            try {
+                FileOutputStream out = new FileOutputStream(file);
+                bitmapToSave.compress(Bitmap.CompressFormat.JPEG, 90, out);
+                out.flush();
+                out.close();
 
-            isDownloading = false;
-        } catch (Exception e) {
-            e.printStackTrace();
+                isDownloading = false;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
