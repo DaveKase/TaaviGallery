@@ -21,8 +21,8 @@ public class MainActivity extends ActionBarActivity {
     }
 
     private void downloadJson() {
-        JSON json = new JSON();
-        json.getJsonArray();
+        Downloader downloader = new Downloader();
+        downloader.getJsonArray();
 
         //Log.i(TAG, "JARRAY = " + jArray.toString());
     }

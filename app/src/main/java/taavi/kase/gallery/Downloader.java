@@ -22,10 +22,11 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Environment;
 import android.util.Log;
+
 /**
  * Created by Taavi on 19.05.2015.
  */
-public class JSON {
+public class Downloader {
     private static final String TAG = "JSON";
 
     public void getJsonArray() {
